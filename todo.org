@@ -1,0 +1,8 @@
+* world
+** handles updating
+** stores systems
+** create/remove entities
+*** getters and setters
+** add/remove components on entities
+*** getters and setters
+** add/remove system
