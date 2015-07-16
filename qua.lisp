@@ -4,13 +4,27 @@
 
 ;;; "qua" goes here. Hacks and glory await!
 
+(defun print-table (table)
+  (format t "#<HASH-TABLE~%")
+  (iter (for (k v) in-hashtable table) (format t "~s: ~s~%" k v))
+  (format t ">~%"))
+
 (defparameter *world* nil)
+
+(defun build-var (var)
+  (list var
+        :initform nil
+        :accessor (intern (string var))
+        :initarg (intern (string var) :keyword)))
+
+(defun build-varlist (varlist)
+  (iter (for var in varlist)
+    (collect (build-var var))))
 
 (defmacro defcomponent (name (&rest slots))
   "Makes a basic class. The accessors are declared for the slots, with the same name."
   `(defclass ,name ()
-     (,@(iter (for s in slots)
-          (collect `(,s :accessor ,s))))))
+     (,@(build-varlist slots))))
 
 (defclass world ()
   ((entity-components
@@ -37,9 +51,10 @@
 (defgeneric add-system (world system))
 (defgeneric remove-system (world system-type))
 
-(defgeneric update (world))
+(defgeneric update (world dt)
+  (:documentation "Update all the systems in the world."))
 
-(defun in-hashtable-p (key hash-table)
+(defun in-hash-table-p (key hash-table)
   (nth-value 1 (gethash key hash-table)))
 
 (defun switch-to-world (world)
@@ -52,6 +67,9 @@
   "Internal short-hand"
   (with-slots (entity-components) world
     (gethash entity-id entity-components)))
+(defun (setf components) (value world entity-id)
+  (with-slots (entity-components) world
+    (setf (gethash entity-id entity-components) value)))
 
 (defmethod make-entity ((world world))
   (with-slots (entity-ids entity-components) world
@@ -84,9 +102,11 @@
     ;; (unless (= (aref entity-ids entity-id) 1)
     ;;   (warn "Entity ~a not found. Component not added." entity-id)
     ;;   (return-from add-component nil))
+    (unless (components world entity-id)
+      (setf (components world entity-id) (make-hash-table)))
     (let ((type (type-of component)))
       ;; check if component of same type is already there
-      (when (nth-value 1 (gethash type (components world entity-id)))
+      (when (in-hash-table-p type (components world entity-id))
         (warn "Entity ~a already has component of type ~a, replacing." entity-id type))
       (setf (gethash type (components world entity-id)) component))))
 
@@ -99,17 +119,21 @@
       (iter (for (st s) in-hashtable systems)
         (iter (for d in (dependencies s))
           (when (eql d type)
-            (leave (remhash entity-id (entities s))))))))
+            (leave (remhash entity-id (entities s)))))))))
 
 (defun entity-component (world entity-id component-type)
   (gethash component-type (components world entity-id)))
 
 (defun (setf entity-component) (value world entity-id component-type)
-  (setf (get-hash component-type (components world entity-id)) value))
+  (setf (gethash component-type (components world entity-id)) value))
+
+(defmethod update ((world world) dt)
+  (with-slots (systems) world
+    (iter (for (st s) in-hashtable systems)
+      (update-system world s dt))))
 
 (defclass system ()
   ((dependencies
-    :initarg dependencies
     :type cons
     :accessor dependencies)
    (entities
@@ -117,44 +141,50 @@
     :type hash-table
     :accessor entities)))
 
+(defgeneric update-system (world system dt))
+
+(defmacro defsystem (name (&rest dependencies))
+  `(defclass ,name (system)
+     ((dependencies
+       :initform ',dependencies
+       :type cons
+       :accessor dependencies))))
+
 (defun in-system-p (components system)
   "Compare the hash-table of components with the list of dependencies of the system. "
   (with-slots (dependencies) system
     (iter (for ct in dependencies)
-      (unless (nth-value 1 (gethash ct components))
+      (unless (in-hash-table-p ct components)
         (leave nil))
       (finally (return t)))))
 
-(defmacro update-system (world system dt &body code)
-  `(with-slots (entities dependencies) system
-    (iter (for i in-vector entities)
-       (let (,@(iter (for d in dependencies)
-                 (collect `(,d (gethash ,d ,(components world i))))))
-         ,@body))))
+(defun build-let-var (var components)
+  (list var (gethash var components)))
+
+(defmacro with-components ((&rest component-types) components &body body)
+  "Takes a component type list and"
+  `(let (,@(iter (for c in component-types)
+             (collect (build-let-var c components))))
+     ,@body))
 
 (defun setup-entity-systems (world)
   (with-slots (systems entity-components) world
     (iter (for (e ec) in-hashtable entity-components)
-      (iter (for (st s) in-hastable systems)
+      (iter (for (st s) in-hashtable systems)
         (when (in-system-p ec s)
           (setf (gethash e (entities s)) 1))))))
 
-;; (defun test-interface ()
-;;   (defcomponent point ()
-;;     (x y z))
+(defmethod add-system ((world world) system)
+  (with-slots (systems) world
+    (setf (gethash (type-of system) systems) system)))
 
-;;   (defcomponent velocity (point)
-;;     (vx vy vz))
+(defmethod remove-system ((world world) system)
+  (with-slots (systems) world
+    (remhash (type-of system) systems)))
 
-;;   (defsystem point (entity point)
-;;     (format t "entity ~a at position (~a, ~a, ~a)~%" entity (x point) (y point) (z point)))
+(defmethod update-system ((world world) (system system) dt)
+  (format t "~s updated.~%" (type-of system)))
 
-;;   (defsystem velocity (entity velocity point)
-;;     (incf (x point) (vx velocity))
-;;     (incf (y point) (vy velocity))
-;;     (incf (z point) (vz velocity)))
 
-;;   (make-entity nil '(point) :x 1 :y 2 :z 3)
-;;   (make-entity nil '(point velocity) :x 4 :y 5 :z 6 :vx -1 :vy -2 :vz -3)
 
-;;   (loop repeat 10 do (system-loop)))
+
