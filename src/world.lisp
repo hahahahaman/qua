@@ -20,10 +20,12 @@
       ;; empty id found - set filled
       (when (= (aref entity-ids i) 0)
         (setf (aref entity-ids i) 1
-              (components world i)(make-hash-table))
+              ;; initialize the entity's components
+              (components world i) (make-hash-table))
         (leave i))
       ;; if nothing found - extend array
       (finally (vector-push-extend 1 entity-ids)
+               ;; initialize the entity's components
                (setf (components world i) (make-hash-table))
                (return i)))))
 
@@ -39,14 +41,10 @@
     (iter (for (st s) in-hashtable systems)
       (remhash entity-id (entities s)))
     ;; remove entity components
-    (setf (components world entity-id) nil)
-    ))
+    (setf (components world entity-id) nil)))
 
 (defmethod add-component ((world world) entity-id component)
   (with-slots (entity-components entity-ids) world
-    ;; create a hash-table for the components, if nil
-    (unless (components world entity-id)
-      (setf (components world entity-id) (make-hash-table)))
     (let ((type (type-of component)))
       ;; check if component of same type is already there
       (when (in-hash-table-p type (components world entity-id))
@@ -55,6 +53,7 @@
 
 (defmethod remove-component ((world world) entity-id component)
   (let ((type (type-of component)))
+    ;; remove the component from components hash-table
     (remhash type (components world entity-id))
 
     ;;remove entity from systems which depend on the removed component
