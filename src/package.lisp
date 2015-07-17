@@ -12,7 +12,7 @@
            #:update
            #:update-system
            #:current-world
-           #:setup-entity-systems
+           #:initialize-systems
            #:add-system
            #:remove-system
            #:world

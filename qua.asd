@@ -5,7 +5,13 @@
   :author "Your Name <your.name@example.com>"
   :license "Specify license here"
   :serial t
-  :components ((:file "package")
-               (:file "qua"))
+  :components ((:module src
+                :components ((:file "package")
+                             (:file "utils")
+                             (:file "generics")
+                             (:file "component")
+                             (:file "system")
+                             (:file "world")
+                             (:file "qua"))))
   :depends-on (:iterate))
 
