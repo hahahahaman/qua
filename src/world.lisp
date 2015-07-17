@@ -74,6 +74,10 @@
   "Goes through all the entities placing them into the correct systems
 based on the depedencies of the system and the current components."
   (with-slots (systems entity-components) world
+    ;;clear systems of entities
+    (iter (for (st s) in-hashtable systems)
+      (setf (entities s) (make-hash-table)))
+
     ;; entity-id, component
     (iter (for (e ec) in-hashtable entity-components)
       ;; system-type, system

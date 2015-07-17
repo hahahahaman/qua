@@ -7,8 +7,8 @@
   :serial t
   :components ((:module src
                 :components ((:file "package")
-                             (:file "utils")
                              (:file "generics")
+                             (:file "utils")
                              (:file "component")
                              (:file "system")
                              (:file "world")
