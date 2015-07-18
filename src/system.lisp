@@ -22,6 +22,11 @@
                (collect `(,c (gethash ',c (components ,world entity-id))))))
       ,@body)))
 
+(defun system-add-entity (world system entity-id)
+  "Add entity directly into system."
+  (when (components-in-system-p (components world entity-id) system)
+    (setf (gethash entity-id (entities system) 1))))
+
 (defmethod add-system ((world world) system)
   (with-slots (systems) world
     (setf (gethash (type-of system) systems) system)))
