@@ -1,3 +1,5 @@
+;;;; examples.lisp
+
 (in-package :qua-examples)
 
 (defcomponent pos (x y z))

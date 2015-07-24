@@ -15,6 +15,7 @@
            #:initialize-systems
            #:add-system
            #:remove-system
+           #:system-add-entity
            #:world
            #:system
            #:components

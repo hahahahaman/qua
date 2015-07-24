@@ -69,6 +69,22 @@
     (iter (for (st s) in-hashtable systems)
       (update-system world s dt))))
 
+(defun system-add-entity (world system entity-id)
+  "Add entity directly into system."
+  (when (components-in-system-p (components world entity-id) system)
+    (setf (gethash entity-id (entities system)) 1)))
+
+(defmethod add-system ((world world) system)
+  (with-slots (systems) world
+    (setf (gethash (type-of system) systems) system)))
+
+(defmethod remove-system ((world world) system)
+  (with-slots (systems) world
+    (remhash (type-of system) systems)))
+
+(defmethod update-system ((world world) (system system) dt)
+  (format t "~s updated.~%" (type-of system)))
+
 (defun initialize-systems (world)
   "Goes through all the entities placing them into the correct systems
 based on the depedencies of the system and the current components."
@@ -84,3 +100,8 @@ based on the depedencies of the system and the current components."
         (when (components-in-system-p ec s)
           (setf (gethash e (entities s)) 1))))))
 
+(defmacro with-components ((&rest component-types) world system &body body)
+  `(iter (for (entity-id n) in-hashtable (entities ,system))
+     (let (,@(iter (for c in component-types)
+               (collect `(,c (gethash ',c (components ,world entity-id))))))
+       ,@body)))
