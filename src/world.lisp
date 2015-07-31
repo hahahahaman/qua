@@ -31,6 +31,7 @@
 
 (defmethod remove-entity ((world world) entity-id)
   (with-slots (entity-components entity-ids systems) world
+    ;; remove entity from entity-components
     (unless (remhash entity-id entity-components)
       (warn "Entity ~a not found. Nothing removed." entity-id)
       (return-from remove-entity nil))
@@ -39,9 +40,7 @@
 
     ;; remove entity from all systems
     (iter (for (st s) in-hashtable systems)
-      (remhash entity-id (entities s)))
-    ;; remove entity components
-    (setf (components world entity-id) nil)))
+      (remhash entity-id (entities s)))))
 
 (defmethod add-component ((world world) entity-id component)
   (with-slots (entity-components entity-ids) world
@@ -95,12 +94,20 @@ based on the depedencies of the system and the current components."
 
     ;; entity-id, component
     (iter (for (e ec) in-hashtable entity-components)
-      ;; system-type, system
-      (iter (for (st s) in-hashtable systems)
-        (when (components-in-system-p ec s)
-          (setf (gethash e (entities s)) 1))))))
+      ;; if components is nil, that means the entity
+      (when (not (null ec))
+        ;; system-type, system
+        (iter (for (st s) in-hashtable systems)
+         (when (components-in-system-p ec s)
+           (setf (gethash e (entities s)) 1)))))))
 
 (defmacro with-components ((&rest component-types) world system &body body)
+  "Macro that is a short hand for use in update-system. Creates a loop that applies BODY
+to all entities in the system and makes all the relevant component slots available as
+variables, with the same name as their slot name, in BODY."
+
+  ;; the entities slot of system is a hashtable with a key of the
+  ;; entity-id and a value of 1.
   `(iter (for (entity-id n) in-hashtable (entities ,system))
      (let (,@(iter (for c in component-types)
                (collect `(,c (gethash ',c (components ,world entity-id))))))

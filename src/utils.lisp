@@ -5,10 +5,10 @@
   (iter (for (k v) in-hashtable table) (format t "~s: ~s~%" k v))
   (format t ">~%"))
 
-(defparameter *world* nil)
-
 (defun in-hash-table-p (key hash-table)
   (nth-value 1 (gethash key hash-table)))
+
+(defparameter *world* nil)
 
 (defun switch-to-world (world)
   (setf *world* world))
