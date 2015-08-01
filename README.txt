@@ -18,7 +18,7 @@ Structure of qua:
 qua is loosely based off of Artemis in terms of api interface ideas.
 
 * Entity
-An entity is a unique positive integer.
+An entity is a unique positive integer, which I'll refer to an entity-id.
 
 * Component
 A component is a group of data. In this case it's a class with data slots.
@@ -53,3 +53,22 @@ The main interest in this file is the defcomponent macro which has parameters
 NAME and SLOTS. NAME is the name of the class and SLOTS is the name of the
 slots.
 
+* system.lisp
+A system is a class with two slots DEPENDENCIES and ENTITIES. DEPENDENCIES is a
+list of type symbols of the necessary components. ENTITIES is a hashtable with
+keys of the entity id and a value of 1, which is a place holder.
+
+* world.lisp
+A world is class that stores entity ids, component information, and systems. The
+class has 3 slots:
+ENTITY-COMPONENTS, a hashtable with keys of the entity id and a value of another
+hashtable. This inner hashtable contains keys of the type of the component and a
+value of a component instance. This ensures that an entity has a unique
+component of a certain type.
+ENTITY-IDS is an extendable array. The array index is an entity id and the value
+is 0 or 1 indicating whether the id is inactive or active. MAKE-ENTITY looks for
+an unused id and returns it, or if none are found, then it extends the array and
+returns this new id.
+SYSTEMS, is a hashtable with a key of a type of a system and a value of a system
+object. The hashtable is once again used to keep track of unique types in the
+world. As well as ease of getting and removing objects.
