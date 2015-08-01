@@ -16,7 +16,7 @@
 
 (defmethod make-entity ((world world))
   (with-slots (entity-ids entity-components) world
-    (iter (for i in entity-ids)
+    (iter (for i from 0 below (length entity-ids))
       ;; empty id found - set filled
       (when (= (aref entity-ids i) 0)
         (setf (aref entity-ids i) 1
