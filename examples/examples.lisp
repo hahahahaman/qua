@@ -2,7 +2,8 @@
 
 (in-package :qua-examples)
 
-(defcomponent pos (x y z))
+;; (defcomponent pos (x y z))
+(defstruct pos x y z)
 (defcomponent velocity (x y z))
 
 (defsystem pos-system (pos))
@@ -10,15 +11,18 @@
 (defmethod update-system ((world qua:world) (system pos-system) dt)
   (flet ((cfloat (n) (coerce n 'single-float)))
     (with-components (pos) world system
-      (format t "~5$, ~5$, ~5$~%" (cfloat (x pos)) (cfloat (y pos)) (cfloat (z pos))))))
+      (format t "~5$, ~5$, ~5$~%"
+              (cfloat (pos-x pos))
+              (cfloat (pos-y pos))
+              (cfloat (pos-z pos))))))
 
 (defsystem velocity-system (pos velocity))
 
 (defmethod update-system ((world qua:world) (system velocity-system) dt)
   (with-components (pos velocity) world system
-    (incf (x pos) (* (x velocity) dt))
-    (incf (y pos) (* (y velocity) dt))
-    (incf (z pos) (* (z velocity) dt))))
+    (incf (pos-x pos) (* (x velocity) dt))
+    (incf (pos-y pos) (* (y velocity) dt))
+    (incf (pos-z pos) (* (z velocity) dt))))
 
 (defun example ()
   (let* ((n 10)
@@ -29,7 +33,7 @@
          (pos (make-array n
                           :initial-contents
                           (iter (for i from 0 below n)
-                            (collect (make-instance 'pos :x 1.0 :y 1.0 :z 1.0)))))
+                            (collect (make-pos :x 1.0 :y 1.0 :z 1.0)))))
          (vel (make-array n
                           :initial-contents
                           (iter (for i from 0 below n)

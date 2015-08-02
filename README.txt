@@ -21,7 +21,8 @@ qua is loosely based off of Artemis in terms of api interface ideas.
 An entity is a unique positive integer, which I'll refer to an entity-id.
 
 * Component
-A component is a group of data. In this case it's a class with data slots.
+A component is a group of data. In this case it's a class or a struct with data
+slots.
 
 * System
 A system handles entities which have certain specified components. UPDATE-SYSTEM
@@ -47,11 +48,10 @@ Functions to manipulate the hashtable of components of an entity.
 Functions to get and set a component of a specified type of an entity.
 
 * component.lisp
-A component is just a class, a regular class definition will work with a system
-if its slots have accessors with the same name as the slot.
-The main interest in this file is the defcomponent macro which has parameters
-NAME and SLOTS. NAME is the name of the class and SLOTS is the name of the
-slots.
+A component is just a class (a struct can also be used, since doesn't actually
+use any CLOS specific features). The main interest in this file is the
+defcomponent macro which has parameters NAME and SLOTS. NAME is the name of the
+class and SLOTS is the name of the slots.
 
 * system.lisp
 A system is a class with two slots DEPENDENCIES and ENTITIES. DEPENDENCIES is a
