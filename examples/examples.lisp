@@ -8,7 +8,7 @@
 
 (defsystem pos-system (pos))
 
-(defmethod update-system ((world qua:world) (system pos-system) dt)
+(defmethod update-system ((world world) (system pos-system) dt)
   (flet ((cfloat (n) (coerce n 'single-float)))
     (with-components (pos) world system
       (format t "~5$, ~5$, ~5$~%"
@@ -18,11 +18,12 @@
 
 (defsystem velocity-system (pos velocity))
 
-(defmethod update-system ((world qua:world) (system velocity-system) dt)
-  (with-components (pos velocity) world system
-    (incf (pos-x pos) (* (x velocity) dt))
-    (incf (pos-y pos) (* (y velocity) dt))
-    (incf (pos-z pos) (* (z velocity) dt))))
+(defmethod update-system ((world world) (system velocity-system) dt)
+  (with-components (pos (vel velocity)) world system
+    ;; using defstruct'ed POS and DEFSYSTEM, a class, together
+    (incf (pos-x pos) (* (x vel) dt))
+    (incf (pos-y pos) (* (y vel) dt))
+    (incf (pos-z pos) (* (z vel) dt))))
 
 (defun example ()
   (let* ((n 10)
@@ -41,12 +42,10 @@
          (pos-sys (make-instance 'pos-system))
          (vel-sys (make-instance 'velocity-system)))
     (iter (for i from 0 below n)
-      (add-component w (aref e i) (aref pos i))
-      (add-component w (aref e i) (aref vel i)))
+      (add-components w (aref e i) (aref pos i) (aref vel i)))
     ;; (print-table (components w e))
     (iter (for i from 1 below n)
-      (remove-entity w (aref e i)))
-    (add-system w pos-sys)
-    (add-system w vel-sys)
+      (remove-entities w (aref e i)))
+    (add-systems w vel-sys pos-sys)
     (initialize-systems w)
-    (iter (for i from 0 to 10) (update w 0.1))))
+    (iter (for i from 0 to 10) (update-world w 0.1))))

@@ -14,6 +14,12 @@
     :type hash-table))
   (:documentation "Handles the entities and the systems."))
 
+(defun make-world ()
+  "Returns a new world instance, also sets *WORLD* to this new world."
+  (let ((w (make-instance 'world)))
+    (setf *world* w)
+    w))
+
 (defmethod make-entity ((world world))
   (with-slots (entity-ids entity-components) world
     (iter (for i from 0 below (length entity-ids))
@@ -42,6 +48,10 @@
     (iter (for (st s) in-hashtable systems)
       (remhash entity-id (entities s)))))
 
+(defun remove-entities (world &rest entities)
+  (iter (for e in entities)
+    (remove-entity world e)))
+
 (defmethod add-component ((world world) entity-id component)
   (with-slots (entity-components entity-ids) world
     (let ((type (type-of component)))
@@ -49,6 +59,10 @@
       (when (in-hash-table-p type (components world entity-id))
         (warn "Entity ~a already has component of type ~a, replacing." entity-id type))
       (setf (gethash type (components world entity-id)) component))))
+
+(defun add-components (world entity-id &rest components)
+  (iter (for c in components)
+    (add-component world entity-id c)))
 
 (defmethod remove-component ((world world) entity-id component)
   (let ((type (type-of component)))
@@ -63,7 +77,11 @@
             ;; exit from inner loop
             (leave (remhash entity-id (entities s)))))))))
 
-(defmethod update ((world world) dt)
+(defun remove-components (world entity-id &rest components)
+  (iter (for c in components)
+    (remove-component world entity-id c)))
+
+(defmethod update-world ((world world) dt)
   (with-slots (systems) world
     (iter (for (st s) in-hashtable systems)
       (update-system world s dt))))
@@ -73,13 +91,25 @@
   (when (components-in-system-p (components world entity-id) system)
     (setf (gethash entity-id (entities system)) 1)))
 
+(defun system-add-entities (world system &rest entities)
+  (iter (for e in entities)
+    (system-add-entity world system e)))
+
 (defmethod add-system ((world world) system)
   (with-slots (systems) world
     (setf (gethash (type-of system) systems) system)))
 
+(defun add-systems (world &rest systems)
+  (iter (for s in systems)
+    (add-system world s)))
+
 (defmethod remove-system ((world world) system)
   (with-slots (systems) world
     (remhash (type-of system) systems)))
+
+(defun remove-systesm (world &rest systems)
+  (iter (for s in systems)
+    (remove-system world s)))
 
 (defmethod update-system ((world world) (system system) dt)
   (format t "~s updated.~%" (type-of system)))
@@ -101,14 +131,17 @@ based on the depedencies of the system and the current components."
          (when (components-in-system-p ec s)
            (setf (gethash e (entities s)) 1)))))))
 
-(defmacro with-components ((&rest component-types) world system &body body)
-  "Macro that is a short hand for use in update-system. Creates a loop that applies BODY
-to all entities in the system and makes all the relevant component slots available as
-variables, with the same name as their slot name, in BODY."
+(defmacro with-components (component-types world system &body body)
+  " COMPONENT-TYPE takes 2 value list, (var-name type) kind of like WITH-ACCESSORS.
+This loops through all entities in SYSTEM exposing the components specified in COMPONENT-TYPES.
+This macro exposes the current ENTITY-ID, which can be useful."
 
   ;; the entities slot of system is a hashtable with a key of the
-  ;; entity-id and a value of 1.
-  `(iter (for (entity-id n) in-hashtable (entities ,system))
+  ;; entity-id and a value of 1, so N is a throw away variable.
+  `(iter (for (entity-id n) in-hashtable (entities system)) ;; loop through entities
+     ;;collect components specified in component-types
      (let (,@(iter (for c in component-types)
-               (collect `(,c (gethash ',c (components ,world entity-id))))))
+               (collect `(,(if (symbolp c) c (car c))
+                          (gethash ',(if (symbolp c) c (cadr c))
+                                   (components ,world entity-id))))))
        ,@body)))

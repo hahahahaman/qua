@@ -11,7 +11,7 @@
 (defgeneric add-system (world system))
 (defgeneric remove-system (world system-type))
 
-(defgeneric update (world dt)
+(defgeneric update-world (world dt)
   (:documentation "Update all the systems in the world."))
 
 (defgeneric update-system (world system dt))

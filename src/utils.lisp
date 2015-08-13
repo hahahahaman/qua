@@ -17,14 +17,16 @@
   *world*)
 
 (defun components (world entity-id)
-  "Internal short-hand"
+  "Returns the hash-table of components, from the ENTITY-COMPONENTS slot of WORLD."
   (with-slots (entity-components) world
     (gethash entity-id entity-components)))
+
 (defun (setf components) (value world entity-id)
   (with-slots (entity-components) world
     (setf (gethash entity-id entity-components) value)))
 
 (defun entity-component (world entity-id component-type)
+  "Returns the component of type COMPONENT-TYPE of ENTITY-ID."
   (gethash component-type (components world entity-id)))
 
 (defun (setf entity-component) (value world entity-id component-type)
