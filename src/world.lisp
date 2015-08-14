@@ -107,9 +107,12 @@
   (with-slots (systems) world
     (remhash (type-of system) systems)))
 
-(defun remove-systesm (world &rest systems)
+(defun remove-systems (world &rest systems)
   (iter (for s in systems)
     (remove-system world s)))
+
+(defmethod get-system ((world world) (system-type symbol))
+  (gethash system-type (systems world)))
 
 (defmethod update-system ((world world) (system system) dt)
   (format t "~s updated.~%" (type-of system)))

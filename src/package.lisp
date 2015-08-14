@@ -31,6 +31,7 @@
    #:add-systems
    #:remove-systems
    #:system-add-entities
+   #:get-system
 
    ;; classes
    #:world
