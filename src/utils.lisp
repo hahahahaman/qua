@@ -33,7 +33,7 @@
   (setf (gethash component-type (components world entity-id)) value))
 
 (defun components-in-system-p (components system)
-  "Compare the hash-table of components with the list of dependencies of the system. "
+  "Returns T if COMPONENTS contains all the dependencies of SYSTEM, else NIL."
   (with-slots (dependencies) system
     ;; component type
     (iter (for ct in dependencies)

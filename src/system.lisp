@@ -16,3 +16,5 @@
        :type cons
        :accessor dependencies))))
 
+(defmethod clear-system ((system system))
+  (setf (entities system) (make-hash-table)))

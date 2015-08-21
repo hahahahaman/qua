@@ -1,9 +1,9 @@
 ;;;; qua.asd
 
 (asdf:defsystem #:qua
-  :description "Describe qua here"
-  :author "Your Name <your.name@example.com>"
-  :license "Specify license here"
+  :description "Entity Component system"
+  :author "hahahahaman <hahahadude@gmail.com>"
+  :license "licenceless Rider"
   :serial t
   :components ((:module src
                 :components ((:file "package")

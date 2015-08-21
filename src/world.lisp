@@ -5,9 +5,9 @@
     :initform (make-hash-table)
     :type hash-table)
    (entity-ids
-    :initform (make-array 1 :fill-pointer 0 :adjustable t
-                            :element-type 'bit
-                            :initial-element 0)
+    :initform (make-array 100 :fill-pointer 0 :adjustable t
+                              :element-type 'bit
+                              :initial-element 0)
     :type array)
    (systems
     :initform (make-hash-table)
@@ -127,12 +127,21 @@ based on the depedencies of the system and the current components."
 
     ;; entity-id, component
     (iter (for (e ec) in-hashtable entity-components)
-      ;; if components is nil, that means the entity
+      ;; don't check systems if no components
       (when (not (null ec))
         ;; system-type, system
         (iter (for (st s) in-hashtable systems)
-         (when (components-in-system-p ec s)
-           (setf (gethash e (entities s)) 1)))))))
+          ;; when all depencenies of system are satisfied
+          (when (components-in-system-p ec s)
+            ;; place entity into the system
+            (setf (gethash e (entities s)) 1)))))))
+
+(defmethod clear-world ((world world))
+  (with-slots (entity-components entity-ids systems) world
+    (setf entity-components (make-hash-table)
+          systems (make-hash-table))
+    (iter (for i in-vector entity-ids)
+      (setf i 0))))
 
 (defmacro with-components (component-types world system &body body)
   " COMPONENT-TYPE takes 2 value list, (var-name type) kind of like WITH-ACCESSORS.

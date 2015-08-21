@@ -24,6 +24,7 @@
    #:make-world
    #:update-world
    #:current-world
+   #:clear-world
 
    ;; system
    #:update-system

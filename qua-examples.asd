@@ -1,7 +1,7 @@
 ;;;; qua-examples.asd
 
 (asdf:defsystem #:qua-examples
-  :name "Basic qua usage"
+  :name "Some basic qua usage"
   :serial t
   :components ((:module examples
                 :components ((:file "package")
