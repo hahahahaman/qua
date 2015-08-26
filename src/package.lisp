@@ -24,6 +24,7 @@
    #:make-world
    #:update-world
    #:current-world
+   #:clear-entities
    #:clear-world
 
    ;; system
@@ -32,6 +33,7 @@
    #:add-systems
    #:remove-systems
    #:system-add-entities
+   #:system-remove-entities
    #:get-system
 
    ;; classes

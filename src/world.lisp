@@ -71,6 +71,7 @@
 
     ;;remove entity from systems which depend on the removed component
     (with-slots (systems) world
+      ;; loop through all systems getting the system-type and system instance
       (iter (for (st s) in-hashtable systems)
         (iter (for d in (dependencies s))
           (when (eql d type)
@@ -88,12 +89,20 @@
 
 (defun system-add-entity (world system entity-id)
   "Add entity directly into system."
-  (when (components-in-system-p (components world entity-id) system)
-    (setf (gethash entity-id (entities system)) 1)))
+  (if (components-in-system-p (components world entity-id) system)
+      (setf (gethash entity-id (entities system)) 1)
+      (warn "Entity ~a doesn't satisfy dependencies of system ~a!~%" entity-id system)))
 
 (defun system-add-entities (world system &rest entities)
   (iter (for e in entities)
-    (system-add-entity world system e)))
+        (system-add-entity world system e)))
+
+(defun system-remove-entity (system entity-id)
+  (remhash entity-id (entities system)))
+
+(defun system-remove-entities (system &rest entities)
+  (iter (for e in entities)
+        (system-remove-entity world system e)))
 
 (defmethod add-system ((world world) system)
   (with-slots (systems) world
@@ -135,6 +144,12 @@ based on the depedencies of the system and the current components."
           (when (components-in-system-p ec s)
             ;; place entity into the system
             (setf (gethash e (entities s)) 1)))))))
+
+(defmethod clear-entities ((world world))
+  (with-slots (entity-ids) world
+    (iter (for e in-vector entity-ids)
+      (when (= e 1)
+        (remove-entity world e)))))
 
 (defmethod clear-world ((world world))
   (with-slots (entity-components entity-ids systems) world
