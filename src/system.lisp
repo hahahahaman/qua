@@ -2,12 +2,16 @@
 
 (defclass system ()
   ((dependencies
+    :initarg :dependencies
     :type cons
     :accessor dependencies)
    (entities
-    :initform (make-hash-table)
+    :initarg :entities
     :type hash-table
-    :accessor entities)))
+    :accessor entities))
+  (:default-initargs
+   :dependencies nil
+   :entities (make-hash-table)))
 
 (defmacro defsystem (name (&rest dependencies))
   `(defclass ,name (system)

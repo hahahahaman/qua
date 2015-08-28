@@ -11,7 +11,8 @@
     :type array)
    (systems
     :initform (make-hash-table)
-    :type hash-table))
+    :type hash-table
+    :accessor systems))
   (:documentation "Handles the entities and the systems."))
 
 (defun make-world ()
@@ -102,7 +103,7 @@
 
 (defun system-remove-entities (system &rest entities)
   (iter (for e in entities)
-        (system-remove-entity world system e)))
+        (system-remove-entity system e)))
 
 (defmethod add-system ((world world) system)
   (with-slots (systems) world
@@ -132,7 +133,8 @@ based on the depedencies of the system and the current components."
   (with-slots (systems entity-components) world
     ;;clear systems of entities
     (iter (for (st s) in-hashtable systems)
-      (setf (entities s) (make-hash-table)))
+      (iter (for key in (alexandria:hash-table-keys (entities s)))
+        (remhash key (entities s))))
 
     ;; entity-id, component
     (iter (for (e ec) in-hashtable entity-components)
@@ -165,7 +167,7 @@ This macro exposes the current ENTITY-ID, which can be useful."
 
   ;; the entities slot of system is a hashtable with a key of the
   ;; entity-id and a value of 1, so N is a throw away variable.
-  `(iter (for (entity-id n) in-hashtable (entities system)) ;; loop through entities
+  `(iter (for (entity-id n) in-hashtable (entities ,system)) ;; loop through entities
      ;;collect components specified in component-types
      (let (,@(iter (for c in component-types)
                (collect `(,(if (symbolp c) c (car c))
