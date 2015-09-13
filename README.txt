@@ -15,7 +15,7 @@ properties and from that it automatically obtains behavior.
 In essence it's just a means of simplifying variety. Google it for more info.
 
 Structure of qua:
-qua is loosely based off of Artemis in terms of api interface ideas.
+qua is loosely based off of Artemis in terms of api ideas.
 
 * Entity
 An entity is a unique positive integer, which I'll refer to an entity-id.
