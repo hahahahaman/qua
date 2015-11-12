@@ -77,10 +77,11 @@ component and a value of a component instance. This ensures that an entity has a
 unique component of a certain type.
 
     * ENTITY-IDS is an extendable array. The array index is an entity id and the
-value is 0 or 1 indicating whether the id is active or inactive. MAKE-ENTITY
-looks for an unused id and returns it, or if none are found, then it extends the
-array and returns this new id.
+value is 0 or 1 indicating whether the id is inactive or active, respectively.
 
     * SYSTEMS, is a hashtable with a key of a type of a system and a value of a
 system object. The hashtable is once again used to keep track of unique types in
 the world. As well as ease of getting and removing objects.
+
+  MAKE-ENTITY looks for an unused id and returns it, or if none are found, then it
+extends the array and returns this new id.
