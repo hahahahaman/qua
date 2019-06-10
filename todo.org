@@ -1,8 +1,13 @@
 * world
-** handles updating
-** stores systems
-** create/remove entities
+** DONE handles updating
+   CLOSED: [2019-06-10 Mon 08:30]
+** DONE stores systems
+   CLOSED: [2019-06-10 Mon 08:30]
+** DONE create/remove entities
+   CLOSED: [2019-06-10 Mon 08:30]
 *** getters and setters
-** add/remove components on entities
+** DONE add/remove components on entities
+   CLOSED: [2019-06-10 Mon 08:30]
 *** getters and setters
-** add/remove system
+** DONE add/remove system
+   CLOSED: [2019-06-10 Mon 08:30]

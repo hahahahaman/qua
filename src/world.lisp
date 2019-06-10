@@ -172,5 +172,6 @@ This macro exposes the current ENTITY-ID, which can be useful."
      (let (,@(iter (for c in component-types)
                (collect `(,(if (symbolp c) c (car c))
                           (gethash ',(if (symbolp c) c (cadr c))
-                                   (components ,world entity-id))))))
+                                   (components ,world entity-id)))))
+           (,(alexandria:symbolicate 'entity-id) entity-id))
        ,@body)))

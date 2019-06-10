@@ -13,5 +13,5 @@
                              (:file "system")
                              (:file "world")
                              (:file "qua"))))
-  :depends-on (:iterate))
+  :depends-on (#:iterate #:alexandria))
 

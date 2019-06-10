@@ -11,7 +11,8 @@
 (defmethod update-system ((world world) (system pos-system) dt)
   (flet ((cfloat (n) (coerce n 'single-float)))
     (with-components (pos) world system
-      (format t "~5$, ~5$, ~5$~%"
+      (format t "id:~D, x:~2$, y:~2$, z:~2$~%"
+              entity-id ;; this is declared inside with-components
               (cfloat (pos-x pos))
               (cfloat (pos-y pos))
               (cfloat (pos-z pos))))))
@@ -26,7 +27,7 @@
     (incf (pos-z pos) (* (z vel) dt))))
 
 (defun example ()
-  (let* ((n 10)
+  (let* ((n 2)
          (w (make-instance 'qua:world))
          (e (make-array n
                         :initial-contents
@@ -44,8 +45,8 @@
     (iter (for i from 0 below n)
       (add-components w (aref e i) (aref pos i) (aref vel i)))
     ;; (print-table (components w e))
-    (iter (for i from 1 below n)
-      (remove-entities w (aref e i)))
+    ;; (iter (for i from 1 below n)
+    ;;   (remove-entities w (aref e i)))
     (add-systems w vel-sys pos-sys)
     (initialize-systems w)
     (iter (for i from 0 to 10) (update-world w 0.1))))
