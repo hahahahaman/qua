@@ -5,7 +5,7 @@
     :initform (make-hash-table)
     :type hash-table)
    (entity-ids
-    :initform (make-array 100 :fill-pointer 0 :adjustable t
+    :initform (make-array 256 :fill-pointer 0 :adjustable t
                               :element-type 'bit
                               :initial-element 0)
     :type array)
@@ -127,7 +127,7 @@
 (defmethod update-system ((world world) (system system) dt)
   (format t "~s updated.~%" (type-of system)))
 
-(defun initialize-systems (world)
+(defun add-entities-to-systems (world)
   "Goes through all the entities placing them into the correct systems
 based on the depedencies of the system and the current components."
   (with-slots (systems entity-components) world
@@ -160,10 +160,13 @@ based on the depedencies of the system and the current components."
     (iter (for i in-vector entity-ids)
       (setf i 0))))
 
-(defmacro with-components (component-types world system &body body)
-  " COMPONENT-TYPE takes 2 value list, (var-name type) kind of like WITH-ACCESSORS.
-This loops through all entities in SYSTEM exposing the components specified in COMPONENT-TYPES.
-This macro exposes the current ENTITY-ID, which can be useful."
+(defmacro system-do-with-components (component-types world system
+                                     id-var-name
+                                     &body body)
+  "COMPONENT-TYPE takes 2 value list, (var-name type) kind of like WITH-ACCESSORS.
+This loops through all entities in SYSTEM exposing the components
+specified in COMPONENT-TYPES. This macro exposes the current
+ENTITY-ID, as ID-VAR-NAME, which can be useful."
 
   ;; the entities slot of system is a hashtable with a key of the
   ;; entity-id and a value of 1, so N is a throw away variable.
@@ -173,5 +176,5 @@ This macro exposes the current ENTITY-ID, which can be useful."
                (collect `(,(if (symbolp c) c (car c))
                           (gethash ',(if (symbolp c) c (cadr c))
                                    (components ,world entity-id)))))
-           (,(alexandria:symbolicate 'entity-id) entity-id))
+           (,(alexandria:symbolicate id-var-name) entity-id))
        ,@body)))

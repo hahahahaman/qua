@@ -5,5 +5,5 @@
   :serial t
   :components ((:module examples
                 :components ((:file "package")
-                             (:file "examples"))))
+                             (:file "physics-example"))))
   :depends-on (:iterate :qua))

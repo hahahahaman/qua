@@ -1,3 +1,4 @@
 (defpackage :qua-examples
   (:use #:cl #:iterate #:qua)
-  (:export #:example))
+  (:export #:example
+           #:physics-example))
