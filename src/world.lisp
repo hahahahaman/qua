@@ -8,7 +8,9 @@
     :initform (make-array 256 :fill-pointer 0 :adjustable t
                               :element-type 'bit
                               :initial-element 0)
-    :type array)
+    :type array
+    :documentation "Implemented this way so that I can loop through
+    all entities.")
    (systems
     :initform (make-hash-table)
     :type hash-table
@@ -16,15 +18,13 @@
   (:documentation "Handles the entities and the systems."))
 
 (defun make-world ()
-  "Returns a new world instance, also sets *WORLD* to this new world."
-  (let ((w (make-instance 'world)))
-    (setf *world* w)
-    w))
+  "Returns a new world instance."
+  (make-instance 'world))
 
 (defmethod make-entity ((world world))
   (with-slots (entity-ids entity-components) world
     (iter (for i from 0 below (length entity-ids))
-      ;; empty id found - set filled
+      ;; empty e found - set filled
       (when (= (aref entity-ids i) 0)
         (setf (aref entity-ids i) 1
               ;; initialize the entity's components
@@ -42,7 +42,7 @@
     (unless (remhash entity-id entity-components)
       (warn "Entity ~a not found. Nothing removed." entity-id)
       (return-from remove-entity nil))
-    ;; free entity id
+    ;; free entity e
     (setf (aref entity-ids entity-id) 0)
 
     ;; remove entity from all systems
@@ -54,30 +54,36 @@
     (remove-entity world e)))
 
 (defmethod add-component ((world world) entity-id component)
-  (with-slots (entity-components entity-ids) world
-    (let ((type (type-of component)))
+  (with-slots (entity-components entity-ids systems) world
+    (let ((type (type-of component))
+          (ec (components world entity-id)))
       ;; check if component of same type is already there
-      (when (in-hash-table-p type (components world entity-id))
+      (when (in-hash-table-p type ec)
         (warn "Entity ~a already has component of type ~a, replacing." entity-id type))
-      (setf (gethash type (components world entity-id)) component))))
+      (setf (gethash type ec) component)
+
+      ;; add entity to any systems
+      ;; system-type, system
+      (iter (for (st s) in-hashtable systems)
+        (system-add-entity s entity-id ec)))))
 
 (defun add-components (world entity-id &rest components)
   (iter (for c in components)
     (add-component world entity-id c)))
 
 (defmethod remove-component ((world world) entity-id component)
-  (let ((type (type-of component)))
+  (let ((type (type-of component))
+        (components (components world entity-id)))
     ;; remove the component from components hash-table
-    (remhash type (components world entity-id))
+    (remhash type components)
 
-    ;;remove entity from systems which depend on the removed component
+    ;;remove entity from systems for entity does not have the
+    ;;relevant components
     (with-slots (systems) world
-      ;; loop through all systems getting the system-type and system instance
+      ;; system-type, system
       (iter (for (st s) in-hashtable systems)
-        (iter (for d in (dependencies s))
-          (when (eql d type)
-            ;; exit from inner loop
-            (leave (remhash entity-id (entities s)))))))))
+        (unless (components-in-system-p components s)
+          (system-remove-entity s entity-id))))))
 
 (defun remove-components (world entity-id &rest components)
   (iter (for c in components)
@@ -88,26 +94,12 @@
     (iter (for (st s) in-hashtable systems)
       (update-system world s dt))))
 
-(defun system-add-entity (world system entity-id)
-  "Add entity directly into system."
-  (if (components-in-system-p (components world entity-id) system)
-      (setf (gethash entity-id (entities system)) 1)
-      (warn "Entity ~a doesn't satisfy dependencies of system ~a!~%" entity-id system)))
-
-(defun system-add-entities (world system &rest entities)
-  (iter (for e in entities)
-        (system-add-entity world system e)))
-
-(defun system-remove-entity (system entity-id)
-  (remhash entity-id (entities system)))
-
-(defun system-remove-entities (system &rest entities)
-  (iter (for e in entities)
-        (system-remove-entity system e)))
-
 (defmethod add-system ((world world) system)
-  (with-slots (systems) world
-    (setf (gethash (type-of system) systems) system)))
+  (with-slots (systems entity-ids) world
+    (setf (gethash (type-of system) systems) system)
+    (iter (for e from 0 below (length entity-ids))
+      (when (= (aref entity-ids e) 1)
+        (system-add-entity system e (components world e))))))
 
 (defun add-systems (world &rest systems)
   (iter (for s in systems)
@@ -127,25 +119,25 @@
 (defmethod update-system ((world world) (system system) dt)
   (format t "~s updated.~%" (type-of system)))
 
-(defun add-entities-to-systems (world)
-  "Goes through all the entities placing them into the correct systems
-based on the depedencies of the system and the current components."
-  (with-slots (systems entity-components) world
-    ;;clear systems of entities
-    (iter (for (st s) in-hashtable systems)
-      (iter (for key in (alexandria:hash-table-keys (entities s)))
-        (remhash key (entities s))))
+;; (defun add-entities-to-systems (world)
+;;   "Goes through all the entities placing them into the correct systems
+;; based on the depedencies of the system and the current components."
+;;   (with-slots (systems entity-components) world
+;;     ;;clear systems of entities
+;;     (iter (for (st s) in-hashtable systems)
+;;       (iter (for key in (alexandria:hash-table-keys (entities s)))
+;;         (remhash key (entities s))))
 
-    ;; entity-id, component
-    (iter (for (e ec) in-hashtable entity-components)
-      ;; don't check systems if no components
-      (when (not (null ec))
-        ;; system-type, system
-        (iter (for (st s) in-hashtable systems)
-          ;; when all depencenies of system are satisfied
-          (when (components-in-system-p ec s)
-            ;; place entity into the system
-            (setf (gethash e (entities s)) 1)))))))
+;;     ;; entity-id, component
+;;     (iter (for (e ec) in-hashtable entity-components)
+;;       ;; don't check systems if no components
+;;       (when (not (null ec))
+;;         ;; system-type, system
+;;         (iter (for (st s) in-hashtable systems)
+;;           ;; when all depencenies of system are satisfied
+;;           (when (components-in-system-p ec s)
+;;             ;; place entity into the system
+;;             (setf (gethash e (entities s)) 1)))))))
 
 (defmethod clear-entities ((world world))
   (with-slots (entity-ids) world

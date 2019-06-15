@@ -41,13 +41,13 @@
                             (collect (make-instance 'velocity :x 1.0 :y 1.0 :z 1.0)))))
          (pos-sys (make-instance 'pos-system))
          (vel-sys (make-instance 'velocity-system)))
+    (add-systems w vel-sys pos-sys)
     (iter (for i from 0 below n)
       (add-components w (aref e i) (aref pos i) (aref vel i)))
     ;; (print-table (components w e))
     ;; (iter (for i from 1 below n)
     ;;   (remove-entities w (aref e i)))
-    (add-systems w vel-sys pos-sys)
-    (add-entities-to-systems w)
+    ;; (add-entities-to-systems w)
     (iter (for i from 0 to 10) (update-world w 0.1))))
 
 (defcomponent position-component (coord))
@@ -74,7 +74,7 @@
 
 (defun physics-example ()
   (let* ((n 1)
-         (w (make-instance 'qua:world))
+         (w (make-instance 'world))
          (e (make-array n
                         :initial-contents
                         (iter (for i from 0 below n) (collect (make-entity w)))))
@@ -91,8 +91,7 @@
                                                      :mass 1.0
                                                      :force (vector 10.0 0.0 0.0))))))
          (newt-sys (make-instance 'newtonian-system)))
+    (add-systems w newt-sys)
     (iter (for i from 0 below n)
       (add-components w (aref e i) (aref pos i) (aref newt i)))
-    (add-systems w newt-sys)
-    (add-entities-to-systems w)
     (iter (for i from 0 to 10) (update-world w 0.1))))

@@ -8,13 +8,13 @@
 (defun in-hash-table-p (key hash-table)
   (nth-value 1 (gethash key hash-table)))
 
-(defparameter *world* nil)
+;; (defparameter *world* nil)
 
-(defun switch-to-world (world)
-  (setf *world* world))
+;; (defun switch-to-world (world)
+;;   (setf *world* world))
 
-(defun current-world ()
-  *world*)
+;; (defun current-world ()
+;;   *world*)
 
 (defun components (world entity-id)
   "Returns the hash-table of components, from the ENTITY-COMPONENTS slot of WORLD."
