@@ -11,3 +11,10 @@
 *** getters and setters
 ** DONE add/remove system
    CLOSED: [2019-06-10 Mon 08:30]
+* DONE bug with system dependencies
+  CLOSED: [2019-06-17 Mon 17:52]
+
+why is the slot dependencies nil even though i have an :initform
+parameter?
+
+I had the default-initargs set to nil.

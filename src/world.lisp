@@ -38,11 +38,16 @@
 
 (defmethod remove-entity ((world world) entity-id)
   (with-slots (entity-components entity-ids systems) world
-    ;; remove entity from entity-components
-    (unless (remhash entity-id entity-components)
+
+    ;; check that entity exists
+    (when (zerop (aref entity-ids entity-id))
       (warn "Entity ~a not found. Nothing removed." entity-id)
       (return-from remove-entity nil))
-    ;; free entity e
+
+    ;; remove entity from entity-components
+    (remhash entity-id entity-components)
+
+    ;; free entity id
     (setf (aref entity-ids entity-id) 0)
 
     ;; remove entity from all systems
@@ -97,6 +102,8 @@
 (defmethod add-system ((world world) system)
   (with-slots (systems entity-ids) world
     (setf (gethash (type-of system) systems) system)
+
+    ;; add entities to the system
     (iter (for e from 0 below (length entity-ids))
       (when (= (aref entity-ids e) 1)
         (system-add-entity system e (components world e))))))
@@ -120,18 +127,6 @@
   (format t "~s updated.~%" (type-of system)))
 
 ;; (defun add-entities-to-systems (world)
-;;   "Goes through all the entities placing them into the correct systems
-;; based on the depedencies of the system and the current components."
-;;   (with-slots (systems entity-components) world
-;;     ;;clear systems of entities
-;;     (iter (for (st s) in-hashtable systems)
-;;       (iter (for key in (alexandria:hash-table-keys (entities s)))
-;;         (remhash key (entities s))))
-
-;;     ;; entity-id, component
-;;     (iter (for (e ec) in-hashtable entity-components)
-;;       ;; don't check systems if no components
-;;       (when (not (null ec))
 ;;         ;; system-type, system
 ;;         (iter (for (st s) in-hashtable systems)
 ;;           ;; when all depencenies of system are satisfied
@@ -141,11 +136,12 @@
 
 (defmethod clear-entities ((world world))
   (with-slots (entity-ids) world
-    (iter (for e in-vector entity-ids)
-      (when (= e 1)
-        (remove-entity world e)))))
+    (iter (for id from 0 below (length entity-ids))
+      (when (= (aref entity-ids id) 1)
+        (remove-entity world id)))))
 
 (defmethod clear-world ((world world))
+  "Clear entities, components, and systems."
   (with-slots (entity-components entity-ids systems) world
     (setf entity-components (make-hash-table)
           systems (make-hash-table))

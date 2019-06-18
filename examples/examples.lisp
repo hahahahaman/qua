@@ -58,6 +58,7 @@
 (defmethod update-system ((world world) (system newtonian-system) dt)
   (system-do-with-components ((pos position-component) (newt newtonian-component))
       world system id
+    (print id)
     (with-slots ((vel velocity) mass force) newt
       (let ((accel (if (zerop (reduce #'+ force))
                        (vector 0.0 0.0 0.0)
@@ -92,6 +93,11 @@
                                                      :force (vector 10.0 0.0 0.0))))))
          (newt-sys (make-instance 'newtonian-system)))
     (add-systems w newt-sys)
+    ;; newt-sys
+    ;; (when (components-in-system-p (components w 0) newt-sys)
+    ;;   (print (components w 0))
+    ;;   (print (entities newt-sys)))
     (iter (for i from 0 below n)
       (add-components w (aref e i) (aref pos i) (aref newt i)))
-    (iter (for i from 0 to 10) (update-world w 0.1))))
+    (iter (for i from 0 to 10) (update-world w 0.1))
+    ))

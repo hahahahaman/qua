@@ -6,6 +6,9 @@
   (format t ">~%"))
 
 (defun in-hash-table-p (key hash-table)
+  ;; gethash returns 2 values, the value,
+  ;; and a boolean saying whether the key is in the hash table or not
+  ;; (it's zero based indexing, so nth-value 1)
   (nth-value 1 (gethash key hash-table)))
 
 ;; (defparameter *world* nil)
@@ -31,6 +34,21 @@
 
 (defun (setf entity-component) (value world entity-id component-type)
   (setf (gethash component-type (components world entity-id)) value))
+
+(defun get-component (world entity-id type)
+  (entity-component world entity-id type))
+
+(defun (setf get-components) (value world entity-id type)
+  (setf (entity-component world entity-id type) value))
+
+(defun ec (w id type)
+  (entity-component w id type))
+
+(defun (setf ec) (value w id type)
+  (setf (entity-component w id type) value))
+
+(defun has-component-p (world entity-id component-type)
+  (nth-value 1 (entity-component world entity-id component-type)))
 
 (defun components-in-system-p (components system)
   "Returns T if COMPONENTS contains all the dependencies of SYSTEM, else NIL."

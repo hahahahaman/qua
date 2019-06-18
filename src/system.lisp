@@ -14,20 +14,19 @@
    :entities (make-hash-table)))
 
 (defmacro defsystem (name (&rest dependencies))
-  `(defclass ,name (system)
-     ((dependencies
-       :initform ',dependencies
-       :type cons
-       :accessor dependencies))))
+  `(defclass ,name (system) ()
+     (:default-initargs
+      :dependencies ',dependencies)))
 
 (defmethod clear-system ((system system))
   (setf (entities system) (make-hash-table)))
 
 (defun system-add-entity (system entity-id components)
-  "Add entity directly into system."
-  (if (components-in-system-p components system)
-      (setf (gethash entity-id (entities system)) 1)
-      (warn "Entity ~a doesn't satisfy dependencies of system ~a!~%" entity-id system)))
+  "If entity has correct components add into system."
+  (when (components-in-system-p components system)
+    (setf (gethash entity-id (entities system)) 1)
+    ;; (warn "Entity ~a doesn't satisfy dependencies of system ~a!~%" entity-id system))
+    ))
 
 (defun system-add-entities (system &rest entities)
   "Adds (entity-id components) into SYSTEM."
