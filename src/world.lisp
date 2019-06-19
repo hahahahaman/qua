@@ -9,6 +9,7 @@
                               :element-type 'bit
                               :initial-element 0)
     :type array
+    :accessor world-entities
     :documentation "Implemented this way so that I can loop through
     all entities.")
    (systems
@@ -57,6 +58,10 @@
 (defun remove-entities (world &rest entities)
   (iter (for e in entities)
     (remove-entity world e)))
+
+(defun is-entity-p (world entity-id)
+  (when (and world entity-id)
+    (= (aref (world-entities world) entity-id) 1)))
 
 (defmethod add-component ((world world) entity-id component)
   (with-slots (entity-components entity-ids systems) world

@@ -8,7 +8,7 @@
    (entities
     :initarg :entities
     :type hash-table
-    :accessor entities))
+    :accessor system-entities))
   (:default-initargs
    :dependencies nil
    :entities (make-hash-table)))
@@ -19,12 +19,12 @@
       :dependencies ',dependencies)))
 
 (defmethod clear-system ((system system))
-  (setf (entities system) (make-hash-table)))
+  (setf (system-entities system) (make-hash-table)))
 
 (defun system-add-entity (system entity-id components)
   "If entity has correct components add into system."
   (when (components-in-system-p components system)
-    (setf (gethash entity-id (entities system)) 1)
+    (setf (gethash entity-id (system-entities system)) 1)
     ;; (warn "Entity ~a doesn't satisfy dependencies of system ~a!~%" entity-id system))
     ))
 
