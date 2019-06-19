@@ -34,7 +34,7 @@
     (system-add-entity system e ec)))
 
 (defun system-remove-entity (system entity-id)
-  (remhash entity-id (entities system)))
+  (remhash entity-id (system-entities system)))
 
 (defun system-remove-entities (system &rest entities)
   (iter (for e in entities)

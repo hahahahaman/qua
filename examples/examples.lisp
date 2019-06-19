@@ -93,10 +93,6 @@
                                                      :force (vector 10.0 0.0 0.0))))))
          (newt-sys (make-instance 'newtonian-system)))
     (add-systems w newt-sys)
-    ;; newt-sys
-    ;; (when (components-in-system-p (components w 0) newt-sys)
-    ;;   (print (components w 0))
-    ;;   (print (entities newt-sys)))
     (iter (for i from 0 below n)
       (add-components w (aref e i) (aref pos i) (aref newt i)))
     (iter (for i from 0 to 10) (update-world w 0.1))

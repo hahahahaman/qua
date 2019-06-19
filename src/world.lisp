@@ -53,7 +53,7 @@
 
     ;; remove entity from all systems
     (iter (for (st s) in-hashtable systems)
-      (remhash entity-id (entities s)))))
+      (remhash entity-id (system-entities s)))))
 
 (defun remove-entities (world &rest entities)
   (iter (for e in entities)
@@ -163,7 +163,7 @@ ENTITY-ID, as ID-VAR-NAME, which can be useful."
 
   ;; the entities slot of system is a hashtable with a key of the
   ;; entity-id and a value of 1, so N is a throw away variable.
-  `(iter (for (entity-id n) in-hashtable (entities ,system)) ;; loop through entities
+  `(iter (for (entity-id n) in-hashtable (system-entities ,system)) ;; loop through entities
      ;;collect components specified in component-types
      (let (,@(iter (for c in component-types)
                (collect `(,(if (symbolp c) c (car c))
